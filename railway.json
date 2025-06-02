@@ -1,0 +1,35 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "numReplicas": 1,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  },
+  "services": {
+    "web": {
+      "build": {
+        "buildCommand": "npm install && npx prisma generate && npm run build"
+      },
+      "deploy": {
+        "startCommand": "npx prisma migrate deploy && npm start",
+        "healthcheckPath": "/api/health",
+        "healthcheckTimeout": 100
+      }
+    },
+    "mqtt": {
+      "image": "eclipse-mosquitto:2",
+      "volumes": [
+        {
+          "mount": "/mosquitto/data",
+          "name": "mqtt-data"
+        }
+      ],
+      "deploy": {
+        "restartPolicyType": "ALWAYS"
+      }
+    }
+  }
+}
