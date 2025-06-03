@@ -1,12 +1,14 @@
 'use client'
 
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { Responsive, WidthProvider } from 'react-grid-layout'
 import { StockWidget } from './widgets/StockWidget'
 import { WeatherWidget } from './widgets/WeatherWidget'
 import { WidgetConfigModal } from './widgets/WidgetConfigModal'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
+import { StockService } from '@/services/stockService'
+import { WeatherService } from '@/services/weatherService'
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
 
@@ -48,42 +50,64 @@ export function DashboardGrid({
     config?: any
   }>({ isOpen: false })
 
+  // Auto-refresh widgets on mount and config changes
+  useEffect(() => {
+    widgets.forEach(widget => {
+      handleRefresh(widget.id)
+    })
+  }, [widgets.length])
+
+  // Set up auto-refresh intervals
+  useEffect(() => {
+    const intervals: NodeJS.Timeout[] = []
+    
+    widgets.forEach(widget => {
+      const interval = setInterval(() => {
+        handleRefresh(widget.id)
+      }, 300000) // Refresh every 5 minutes
+      intervals.push(interval)
+    })
+
+    return () => {
+      intervals.forEach(clearInterval)
+    }
+  }, [widgets, handleRefresh])
+
   const handleRefresh = useCallback(async (widgetId: string) => {
     setLoadingWidgets(prev => ({ ...prev, [widgetId]: true }))
     
-    // Simulate data fetching
-    setTimeout(() => {
-      const widget = widgets.find(w => w.id === widgetId)
-      if (widget) {
-        let mockData
+    const widget = widgets.find(w => w.id === widgetId)
+    if (widget) {
+      try {
+        let data
         
         switch (widget.type) {
           case 'STOCK':
-            mockData = {
-              symbol: widget.config.symbol,
-              price: 150 + Math.random() * 10,
-              change: (Math.random() - 0.5) * 5,
-              changePercent: (Math.random() - 0.5) * 3,
-            }
+            const stockService = StockService.getInstance()
+            data = await stockService.getStockData(widget.config.symbol || 'AAPL')
             break
           case 'WEATHER':
-            mockData = {
-              location: widget.config.location,
-              temperature: Math.round(20 + Math.random() * 10),
-              condition: ['Clear', 'Clouds', 'Rain'][Math.floor(Math.random() * 3)],
-              humidity: Math.round(40 + Math.random() * 40),
-              windSpeed: Math.round(5 + Math.random() * 15),
-            }
+            const weatherService = WeatherService.getInstance()
+            data = await weatherService.getWeatherData(
+              widget.config.location || 'New York',
+              widget.config.units || 'metric'
+            )
             break
           default:
-            mockData = {}
+            data = {}
         }
         
-        setWidgetData(prev => ({ ...prev, [widgetId]: mockData }))
+        setWidgetData(prev => ({ ...prev, [widgetId]: data }))
+      } catch (error) {
+        console.error(`Error refreshing widget ${widgetId}:`, error)
+        setWidgetData(prev => ({ 
+          ...prev, 
+          [widgetId]: { error: 'Failed to load data' } 
+        }))
       }
-      
-      setLoadingWidgets(prev => ({ ...prev, [widgetId]: false }))
-    }, 1000)
+    }
+    
+    setLoadingWidgets(prev => ({ ...prev, [widgetId]: false }))
   }, [widgets])
 
   const renderWidget = (widget: Widget) => {

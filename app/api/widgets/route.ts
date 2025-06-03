@@ -98,12 +98,12 @@ export async function POST(request: NextRequest) {
         data: {
           id: uuidv4(),
           dashboardId,
-          type,
+          widgetType: type,
           config,
-          x,
-          y,
-          w,
-          h,
+          positionX: x,
+          positionY: y,
+          width: w,
+          height: h,
         },
       })
 

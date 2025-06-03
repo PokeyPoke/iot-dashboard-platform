@@ -67,10 +67,10 @@ export async function POST(request: NextRequest) {
             dashboardId: dashboardId
           },
           data: {
-            x: item.x,
-            y: item.y,
-            w: item.w,
-            h: item.h,
+            positionX: item.x,
+            positionY: item.y,
+            width: item.w,
+            height: item.h,
           }
         })
       })

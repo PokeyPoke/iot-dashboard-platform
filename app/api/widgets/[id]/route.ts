@@ -5,10 +5,10 @@ import { withAuth, AuthenticatedRequest } from '@/middleware/auth'
 
 const updateWidgetSchema = z.object({
   config: z.object({}).passthrough().optional(),
-  x: z.number().int().min(0).optional(),
-  y: z.number().int().min(0).optional(),
-  w: z.number().int().min(1).optional(),
-  h: z.number().int().min(1).optional(),
+  positionX: z.number().int().min(0).optional(),
+  positionY: z.number().int().min(0).optional(),
+  width: z.number().int().min(1).optional(),
+  height: z.number().int().min(1).optional(),
 })
 
 // PUT /api/widgets/[id] - Update widget
