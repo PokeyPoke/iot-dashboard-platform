@@ -1,39 +1,88 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { DashboardGrid } from '@/components/DashboardGrid'
+import { AddWidgetModal } from '@/components/widgets/AddWidgetModal'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useRouter } from 'next/navigation'
+import { toast } from 'react-hot-toast'
 
 export default function Home() {
   const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [widgets, setWidgets] = useState<any[]>([])
+  const [dashboardId, setDashboardId] = useState<string>('')
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Implement login logic
+    // Simulate login and dashboard creation
     setIsAuthenticated(true)
+    
+    // Create or get default dashboard
+    try {
+      const response = await fetch('/api/dashboards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'My Dashboard' }),
+      })
+      
+      if (response.ok) {
+        const { dashboard } = await response.json()
+        setDashboardId(dashboard.id)
+        loadWidgets(dashboard.id)
+      }
+    } catch (error) {
+      // For demo purposes, use mock dashboard
+      setDashboardId('demo-dashboard')
+    }
+  }
+  
+  const loadWidgets = async (dashId: string) => {
+    try {
+      const response = await fetch(`/api/widgets?dashboardId=${dashId}`)
+      if (response.ok) {
+        const { widgets } = await response.json()
+        setWidgets(widgets)
+      }
+    } catch (error) {
+      console.error('Failed to load widgets:', error)
+    }
   }
 
-  const handleAddWidget = () => {
-    const newWidget = {
-      id: `widget-${Date.now()}`,
-      type: Math.random() > 0.5 ? 'STOCK' : 'WEATHER',
-      config: {
-        symbol: 'AAPL',
-        location: 'New York',
-        units: 'metric',
-      },
-      x: 0,
-      y: 0,
-      w: 4,
-      h: 3,
+  const handleAddWidget = async (type: string, config: any) => {
+    setLoading(true)
+    try {
+      const response = await fetch('/api/widgets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dashboardId,
+          type,
+          config,
+          x: 0,
+          y: 0,
+          w: 4,
+          h: 3,
+        }),
+      })
+      
+      if (response.ok) {
+        const { widget } = await response.json()
+        setWidgets([...widgets, widget])
+        toast.success('Widget added successfully')
+      } else {
+        toast.error('Failed to add widget')
+      }
+    } catch (error) {
+      console.error('Failed to add widget:', error)
+      toast.error('Failed to add widget')
     }
-    setWidgets([...widgets, newWidget])
+    setLoading(false)
   }
 
   const handleLayoutChange = (layouts: any) => {
@@ -41,12 +90,43 @@ export default function Home() {
     console.log('Layout changed:', layouts)
   }
 
-  const handleWidgetRemove = (widgetId: string) => {
-    setWidgets(widgets.filter(w => w.id !== widgetId))
+  const handleWidgetRemove = async (widgetId: string) => {
+    try {
+      const response = await fetch(`/api/widgets/${widgetId}`, {
+        method: 'DELETE',
+      })
+      
+      if (response.ok) {
+        setWidgets(widgets.filter(w => w.id !== widgetId))
+        toast.success('Widget removed')
+      } else {
+        toast.error('Failed to remove widget')
+      }
+    } catch (error) {
+      console.error('Failed to remove widget:', error)
+      toast.error('Failed to remove widget')
+    }
   }
 
-  const handleWidgetConfigure = (widgetId: string) => {
-    console.log('Configure widget:', widgetId)
+  const handleWidgetUpdate = async (widgetId: string, config: any) => {
+    try {
+      const response = await fetch(`/api/widgets/${widgetId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ config }),
+      })
+      
+      if (response.ok) {
+        const { widget } = await response.json()
+        setWidgets(widgets.map(w => w.id === widgetId ? widget : w))
+        toast.success('Widget updated')
+      } else {
+        toast.error('Failed to update widget')
+      }
+    } catch (error) {
+      console.error('Failed to update widget:', error)
+      toast.error('Failed to update widget')
+    }
   }
 
   if (!isAuthenticated) {
@@ -119,10 +199,17 @@ export default function Home() {
         
         <DashboardGrid
           widgets={widgets}
+          dashboardId={dashboardId}
           onLayoutChange={handleLayoutChange}
           onWidgetRemove={handleWidgetRemove}
-          onWidgetConfigure={handleWidgetConfigure}
-          onAddWidget={handleAddWidget}
+          onWidgetUpdate={handleWidgetUpdate}
+          onAddWidget={() => setShowAddModal(true)}
+        />
+        
+        <AddWidgetModal
+          isOpen={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          onAdd={handleAddWidget}
         />
       </main>
     </div>

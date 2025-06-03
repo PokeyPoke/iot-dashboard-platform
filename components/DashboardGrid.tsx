@@ -4,6 +4,7 @@ import React, { useState, useCallback } from 'react'
 import { Responsive, WidthProvider } from 'react-grid-layout'
 import { StockWidget } from './widgets/StockWidget'
 import { WeatherWidget } from './widgets/WeatherWidget'
+import { WidgetConfigModal } from './widgets/WidgetConfigModal'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import 'react-grid-layout/css/styles.css'
@@ -23,21 +24,29 @@ interface Widget {
 
 interface DashboardGridProps {
   widgets: Widget[]
+  dashboardId: string
   onLayoutChange: (layout: any) => void
   onWidgetRemove: (widgetId: string) => void
-  onWidgetConfigure: (widgetId: string) => void
+  onWidgetUpdate: (widgetId: string, config: any) => void
   onAddWidget: () => void
 }
 
 export function DashboardGrid({
   widgets,
+  dashboardId,
   onLayoutChange,
   onWidgetRemove,
-  onWidgetConfigure,
+  onWidgetUpdate,
   onAddWidget,
 }: DashboardGridProps) {
   const [widgetData, setWidgetData] = useState<{ [key: string]: any }>({})
   const [loadingWidgets, setLoadingWidgets] = useState<{ [key: string]: boolean }>({})
+  const [configModal, setConfigModal] = useState<{
+    isOpen: boolean
+    widgetId?: string
+    widgetType?: string
+    config?: any
+  }>({ isOpen: false })
 
   const handleRefresh = useCallback(async (widgetId: string) => {
     setLoadingWidgets(prev => ({ ...prev, [widgetId]: true }))
@@ -83,7 +92,12 @@ export function DashboardGrid({
       config: widget.config,
       data: widgetData[widget.id],
       onRemove: () => onWidgetRemove(widget.id),
-      onConfigure: () => onWidgetConfigure(widget.id),
+      onConfigure: () => setConfigModal({
+        isOpen: true,
+        widgetId: widget.id,
+        widgetType: widget.type,
+        config: widget.config
+      }),
       onRefresh: () => handleRefresh(widget.id),
       isLoading: loadingWidgets[widget.id],
     }
@@ -126,7 +140,15 @@ export function DashboardGrid({
           <ResponsiveGridLayout
             className="layout"
             layouts={layouts}
-            onLayoutChange={(layout, layouts) => onLayoutChange(layouts)}
+            onLayoutChange={(layout, layouts) => {
+              onLayoutChange(layouts)
+              // Persist layout changes to API
+              fetch('/api/widgets/layout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dashboardId, layouts }),
+              })
+            }}
             breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480 }}
             cols={{ lg: 12, md: 10, sm: 6, xs: 4 }}
             rowHeight={100}
@@ -142,6 +164,19 @@ export function DashboardGrid({
             ))}
           </ResponsiveGridLayout>
         </>
+      )}
+      
+      <WidgetConfigModal
+        isOpen={configModal.isOpen}
+        onClose={() => setConfigModal({ isOpen: false })}
+        widgetType={configModal.widgetType}
+        config={configModal.config}
+        onSave={(config) => {
+          if (configModal.widgetId) {
+            onWidgetUpdate(configModal.widgetId, config)
+          }
+        }}
+      />
       )}
     </div>
   )
