@@ -129,7 +129,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     toast.success('Logged out successfully')
   }
 
-  const getAuthHeaders = () => {
+  const getAuthHeaders = (): { [key: string]: string } => {
     if (!accessToken) return {}
     return {
       'Authorization': `Bearer ${accessToken}`,

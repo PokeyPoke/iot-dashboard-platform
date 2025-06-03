@@ -50,29 +50,6 @@ export function DashboardGrid({
     config?: any
   }>({ isOpen: false })
 
-  // Auto-refresh widgets on mount and config changes
-  useEffect(() => {
-    widgets.forEach(widget => {
-      handleRefresh(widget.id)
-    })
-  }, [widgets.length])
-
-  // Set up auto-refresh intervals
-  useEffect(() => {
-    const intervals: NodeJS.Timeout[] = []
-    
-    widgets.forEach(widget => {
-      const interval = setInterval(() => {
-        handleRefresh(widget.id)
-      }, 300000) // Refresh every 5 minutes
-      intervals.push(interval)
-    })
-
-    return () => {
-      intervals.forEach(clearInterval)
-    }
-  }, [widgets, handleRefresh])
-
   const handleRefresh = useCallback(async (widgetId: string) => {
     setLoadingWidgets(prev => ({ ...prev, [widgetId]: true }))
     
@@ -109,6 +86,29 @@ export function DashboardGrid({
     
     setLoadingWidgets(prev => ({ ...prev, [widgetId]: false }))
   }, [widgets])
+
+  // Auto-refresh widgets on mount and config changes
+  useEffect(() => {
+    widgets.forEach(widget => {
+      handleRefresh(widget.id)
+    })
+  }, [widgets.length, handleRefresh])
+
+  // Set up auto-refresh intervals
+  useEffect(() => {
+    const intervals: NodeJS.Timeout[] = []
+    
+    widgets.forEach(widget => {
+      const interval = setInterval(() => {
+        handleRefresh(widget.id)
+      }, 300000) // Refresh every 5 minutes
+      intervals.push(interval)
+    })
+
+    return () => {
+      intervals.forEach(clearInterval)
+    }
+  }, [widgets, handleRefresh])
 
   const renderWidget = (widget: Widget) => {
     const commonProps = {
@@ -201,7 +201,6 @@ export function DashboardGrid({
           }
         }}
       />
-      )}
     </div>
   )
 }
