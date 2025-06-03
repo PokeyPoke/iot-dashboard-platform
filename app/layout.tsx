@@ -9,6 +9,9 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'IoT Dashboard Platform',
   description: 'Customizable dashboard platform with IoT device integration',
+  icons: {
+    icon: '/favicon.svg',
+  },
 }
 
 export default function RootLayout({
