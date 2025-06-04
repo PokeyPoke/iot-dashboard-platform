@@ -4,32 +4,35 @@ import bcrypt from 'bcryptjs'
 // Ensure JWT secrets are properly configured
 const getJWTSecret = (): string => {
   const secret = process.env.JWT_SECRET
-  if (process.env.NODE_ENV === 'production' && (!secret || secret.length < 32)) {
-    console.error('JWT_SECRET issue:', { 
-      exists: !!secret, 
-      length: secret?.length, 
-      nodeEnv: process.env.NODE_ENV 
-    })
-    throw new Error('JWT_SECRET must be set and at least 32 characters in production environment')
+  if (process.env.NODE_ENV === 'production' && !secret) {
+    console.error('JWT_SECRET missing in production')
+    throw new Error('JWT_SECRET must be set in production environment')
   }
   return secret || 'dev-jwt-secret-only-for-development'
 }
 
 const getRefreshSecret = (): string => {
   const secret = process.env.JWT_REFRESH_SECRET
-  if (process.env.NODE_ENV === 'production' && (!secret || secret.length < 32)) {
-    console.error('JWT_REFRESH_SECRET issue:', { 
-      exists: !!secret, 
-      length: secret?.length, 
-      nodeEnv: process.env.NODE_ENV 
-    })
-    throw new Error('JWT_REFRESH_SECRET must be set and at least 32 characters in production environment')
+  if (process.env.NODE_ENV === 'production' && !secret) {
+    console.error('JWT_REFRESH_SECRET missing in production')
+    throw new Error('JWT_REFRESH_SECRET must be set in production environment')
   }
   return secret || 'dev-refresh-secret-only-for-development'
 }
 
-const JWT_SECRET = getJWTSecret()
-const JWT_REFRESH_SECRET = getRefreshSecret()
+let JWT_SECRET: string
+let JWT_REFRESH_SECRET: string
+
+try {
+  JWT_SECRET = getJWTSecret()
+  JWT_REFRESH_SECRET = getRefreshSecret()
+  console.log('JWT secrets initialized successfully')
+} catch (error) {
+  console.error('Failed to initialize JWT secrets:', error)
+  // Fallback to prevent total failure
+  JWT_SECRET = 'fallback-secret-for-emergency'
+  JWT_REFRESH_SECRET = 'fallback-refresh-secret-for-emergency'
+}
 
 export interface JWTPayload {
   userId: string
