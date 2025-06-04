@@ -4,16 +4,26 @@ import bcrypt from 'bcryptjs'
 // Ensure JWT secrets are properly configured
 const getJWTSecret = (): string => {
   const secret = process.env.JWT_SECRET
-  if (process.env.NODE_ENV === 'production' && !secret) {
-    throw new Error('JWT_SECRET must be set in production environment')
+  if (process.env.NODE_ENV === 'production' && (!secret || secret.length < 32)) {
+    console.error('JWT_SECRET issue:', { 
+      exists: !!secret, 
+      length: secret?.length, 
+      nodeEnv: process.env.NODE_ENV 
+    })
+    throw new Error('JWT_SECRET must be set and at least 32 characters in production environment')
   }
   return secret || 'dev-jwt-secret-only-for-development'
 }
 
 const getRefreshSecret = (): string => {
   const secret = process.env.JWT_REFRESH_SECRET
-  if (process.env.NODE_ENV === 'production' && !secret) {
-    throw new Error('JWT_REFRESH_SECRET must be set in production environment')
+  if (process.env.NODE_ENV === 'production' && (!secret || secret.length < 32)) {
+    console.error('JWT_REFRESH_SECRET issue:', { 
+      exists: !!secret, 
+      length: secret?.length, 
+      nodeEnv: process.env.NODE_ENV 
+    })
+    throw new Error('JWT_REFRESH_SECRET must be set and at least 32 characters in production environment')
   }
   return secret || 'dev-refresh-secret-only-for-development'
 }

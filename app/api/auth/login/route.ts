@@ -15,8 +15,11 @@ export async function POST(request: NextRequest) {
   // Apply rate limiting
   return authRateLimit(request, async () => {
     try {
+      console.log('Login attempt started')
       const body = await request.json()
+      console.log('Request body parsed:', { email: body.email, hasPassword: !!body.password })
       const { email, password } = loginSchema.parse(body)
+      console.log('Schema validation passed')
 
     // Find user
     const user = await prisma.user.findUnique({

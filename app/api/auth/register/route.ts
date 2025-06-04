@@ -8,10 +8,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 const registerSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8).regex(
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-    'Password must contain at least one uppercase letter, one lowercase letter, and one number'
-  ),
+  password: z.string().min(8),
   username: z.string().min(3).optional(),
 })
 
@@ -19,8 +16,11 @@ export async function POST(request: NextRequest) {
   // Apply rate limiting
   return authRateLimit(request, async () => {
     try {
+      console.log('Register attempt started')
       const body = await request.json()
+      console.log('Request body parsed:', { email: body.email, hasPassword: !!body.password, username: body.username })
       const { email, password, username } = registerSchema.parse(body)
+      console.log('Schema validation passed')
 
     // Check if user already exists
     const existingUser = await prisma.user.findFirst({
