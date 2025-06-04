@@ -39,7 +39,7 @@ yarn-error.log*
 next-env.d.ts
 
 # prisma
-/prisma/migrations/
+# /prisma/migrations/ - Commenting out to include migrations in repo
 
 # IDE
 .vscode/
