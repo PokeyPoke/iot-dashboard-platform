@@ -14,9 +14,9 @@
         "buildCommand": "npm install && npx prisma generate && npm run build"
       },
       "deploy": {
-        "startCommand": "echo 'Starting without migrations for debugging...' && npm start",
+        "startCommand": "echo 'Running migrations...' && npx prisma migrate deploy && echo 'Starting application...' && npm start",
         "healthcheckPath": "/api/health",
-        "healthcheckTimeout": 100
+        "healthcheckTimeout": 120
       }
     },
     "mqtt": {
