@@ -2,18 +2,25 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { hashPassword, generateAccessToken, generateRefreshToken } from '@/lib/auth'
+import { setAuthCookies } from '@/lib/cookies'
+import { authRateLimit } from '@/middleware/rateLimit'
 import { v4 as uuidv4 } from 'uuid'
 
 const registerSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: z.string().min(8).regex(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+    'Password must contain at least one uppercase letter, one lowercase letter, and one number'
+  ),
   username: z.string().min(3).optional(),
 })
 
 export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json()
-    const { email, password, username } = registerSchema.parse(body)
+  // Apply rate limiting
+  return authRateLimit(request, async () => {
+    try {
+      const body = await request.json()
+      const { email, password, username } = registerSchema.parse(body)
 
     // Check if user already exists
     const existingUser = await prisma.user.findFirst({
@@ -76,29 +83,34 @@ export async function POST(request: NextRequest) {
         refreshToken,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
       }
-    })
+      })
 
-    return NextResponse.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        subscriptionTier: user.subscriptionTier,
-      },
-      accessToken,
-      refreshToken,
-    })
-  } catch (error) {
-    if (error instanceof z.ZodError) {
+      // Set secure httpOnly cookies
+      setAuthCookies(accessToken, refreshToken)
+
+      return NextResponse.json({
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          subscriptionTier: user.subscriptionTier,
+        },
+        // Still include tokens in response for backward compatibility
+        accessToken,
+        refreshToken,
+      })
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          { error: error.errors },
+          { status: 400 }
+        )
+      }
+      console.error('Registration error:', error)
       return NextResponse.json(
-        { error: error.errors },
-        { status: 400 }
+        { error: 'Internal server error' },
+        { status: 500 }
       )
     }
-    console.error('Registration error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
-  }
+  })
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAccessToken } from '@/lib/auth'
+import { getTokenFromRequest } from '@/lib/cookies'
 
 export interface AuthenticatedRequest extends NextRequest {
   user?: {
@@ -13,16 +14,15 @@ export async function withAuth(
   request: NextRequest,
   handler: (req: AuthenticatedRequest) => Promise<NextResponse>
 ): Promise<NextResponse> {
-  const authHeader = request.headers.get('authorization')
+  // Get token from cookies or Authorization header
+  const token = getTokenFromRequest(request)
   
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!token) {
     return NextResponse.json(
       { error: 'Unauthorized' },
       { status: 401 }
     )
   }
-
-  const token = authHeader.substring(7)
 
   try {
     const payload = verifyAccessToken(token)

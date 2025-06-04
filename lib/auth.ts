@@ -1,8 +1,25 @@
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-jwt-secret-for-development'
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'fallback-refresh-secret-for-development'
+// Ensure JWT secrets are properly configured
+const getJWTSecret = (): string => {
+  const secret = process.env.JWT_SECRET
+  if (process.env.NODE_ENV === 'production' && !secret) {
+    throw new Error('JWT_SECRET must be set in production environment')
+  }
+  return secret || 'dev-jwt-secret-only-for-development'
+}
+
+const getRefreshSecret = (): string => {
+  const secret = process.env.JWT_REFRESH_SECRET
+  if (process.env.NODE_ENV === 'production' && !secret) {
+    throw new Error('JWT_REFRESH_SECRET must be set in production environment')
+  }
+  return secret || 'dev-refresh-secret-only-for-development'
+}
+
+const JWT_SECRET = getJWTSecret()
+const JWT_REFRESH_SECRET = getRefreshSecret()
 
 export interface JWTPayload {
   userId: string
