@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node startup-logger.js && next start",
     "lint": "next lint",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",

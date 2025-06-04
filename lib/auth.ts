@@ -23,15 +23,25 @@ const getRefreshSecret = (): string => {
 let JWT_SECRET: string
 let JWT_REFRESH_SECRET: string
 
+console.log('🔐 Initializing JWT secrets...')
+console.log('Environment check:', {
+  NODE_ENV: process.env.NODE_ENV,
+  JWT_SECRET_EXISTS: !!process.env.JWT_SECRET,
+  JWT_SECRET_LENGTH: process.env.JWT_SECRET?.length,
+  JWT_REFRESH_SECRET_EXISTS: !!process.env.JWT_REFRESH_SECRET,
+  JWT_REFRESH_SECRET_LENGTH: process.env.JWT_REFRESH_SECRET?.length
+})
+
 try {
   JWT_SECRET = getJWTSecret()
   JWT_REFRESH_SECRET = getRefreshSecret()
-  console.log('JWT secrets initialized successfully')
+  console.log('✅ JWT secrets initialized successfully')
 } catch (error) {
-  console.error('Failed to initialize JWT secrets:', error)
+  console.error('❌ Failed to initialize JWT secrets:', error)
   // Fallback to prevent total failure
   JWT_SECRET = 'fallback-secret-for-emergency'
   JWT_REFRESH_SECRET = 'fallback-refresh-secret-for-emergency'
+  console.log('⚠️ Using fallback JWT secrets')
 }
 
 export interface JWTPayload {
