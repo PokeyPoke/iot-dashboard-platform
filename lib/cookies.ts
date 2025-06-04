@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 export const AUTH_COOKIE_NAME = 'auth-token'
 export const REFRESH_COOKIE_NAME = 'refresh-token'
@@ -20,6 +20,40 @@ const getDefaultCookieOptions = (maxAge: number): CookieOptions => ({
   maxAge
 })
 
+// For use in API routes (returns response with cookies set)
+export const setAuthCookiesInResponse = (
+  response: NextResponse,
+  accessToken: string,
+  refreshToken: string
+): NextResponse => {
+  const accessCookieOptions = getDefaultCookieOptions(15 * 60) // 15 minutes
+  const refreshCookieOptions = getDefaultCookieOptions(7 * 24 * 60 * 60) // 7 days
+  
+  // Set access token cookie
+  response.cookies.set(AUTH_COOKIE_NAME, accessToken, accessCookieOptions)
+  
+  // Set refresh token cookie
+  response.cookies.set(REFRESH_COOKIE_NAME, refreshToken, refreshCookieOptions)
+  
+  return response
+}
+
+// For use in API routes (returns response with cookies cleared)
+export const clearAuthCookiesInResponse = (response: NextResponse): NextResponse => {
+  response.cookies.set(AUTH_COOKIE_NAME, '', {
+    ...getDefaultCookieOptions(0),
+    maxAge: 0
+  })
+  
+  response.cookies.set(REFRESH_COOKIE_NAME, '', {
+    ...getDefaultCookieOptions(0),
+    maxAge: 0
+  })
+  
+  return response
+}
+
+// For use in server components
 export const setAuthCookies = (accessToken: string, refreshToken: string) => {
   const cookieStore = cookies()
   

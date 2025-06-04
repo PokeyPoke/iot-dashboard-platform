@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { clearAuthCookies, getAuthCookies } from '@/lib/cookies'
+import { clearAuthCookiesInResponse, REFRESH_COOKIE_NAME } from '@/lib/cookies'
 import { prisma } from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   try {
-    const { refreshToken } = getAuthCookies()
+    const refreshToken = request.cookies.get(REFRESH_COOKIE_NAME)?.value
     
     // Remove refresh token from database if it exists
     if (refreshToken) {
@@ -13,14 +13,13 @@ export async function POST(request: NextRequest) {
       })
     }
     
-    // Clear auth cookies
-    clearAuthCookies()
-    
-    return NextResponse.json({ success: true })
+    // Create response and clear auth cookies
+    const response = NextResponse.json({ success: true })
+    return clearAuthCookiesInResponse(response)
   } catch (error) {
     console.error('Logout error:', error)
     // Still clear cookies even if database operation fails
-    clearAuthCookies()
-    return NextResponse.json({ success: true })
+    const response = NextResponse.json({ success: true })
+    return clearAuthCookiesInResponse(response)
   }
 }

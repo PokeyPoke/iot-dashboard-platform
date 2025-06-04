@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { hashPassword, generateAccessToken, generateRefreshToken } from '@/lib/auth'
-import { setAuthCookies } from '@/lib/cookies'
+import { setAuthCookiesInResponse } from '@/lib/cookies'
 import { authRateLimit } from '@/middleware/rateLimit'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -85,10 +85,8 @@ export async function POST(request: NextRequest) {
       }
       })
 
-      // Set secure httpOnly cookies
-      setAuthCookies(accessToken, refreshToken)
-
-      return NextResponse.json({
+      // Create response and set secure httpOnly cookies
+      const response = NextResponse.json({
         user: {
           id: user.id,
           email: user.email,
@@ -99,6 +97,8 @@ export async function POST(request: NextRequest) {
         accessToken,
         refreshToken,
       })
+
+      return setAuthCookiesInResponse(response, accessToken, refreshToken)
     } catch (error) {
       if (error instanceof z.ZodError) {
         return NextResponse.json(
