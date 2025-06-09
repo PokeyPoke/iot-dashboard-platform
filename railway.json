@@ -11,7 +11,7 @@
   "services": {
     "web": {
       "build": {
-        "buildCommand": "npm install && npx prisma generate && npm run build"
+        "buildCommand": "npm install && npx prisma generate --no-engine && npx prisma generate && npm run build"
       },
       "deploy": {
         "startCommand": "echo 'Running migrations...' && npx prisma migrate deploy && echo 'Starting application...' && npm start",
