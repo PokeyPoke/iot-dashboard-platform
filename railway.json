@@ -14,7 +14,7 @@
         "buildCommand": "npm install && npx prisma generate --no-engine && npx prisma generate && npm run build"
       },
       "deploy": {
-        "startCommand": "echo 'Running migrations...' && npx prisma migrate deploy && echo 'Starting application...' && npm start",
+        "startCommand": "echo 'Starting application without migrations for initial deployment...' && npm start",
         "healthcheckPath": "/api/health",
         "healthcheckTimeout": 120
       }
