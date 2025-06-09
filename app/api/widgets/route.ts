@@ -2,12 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { withAuth, AuthenticatedRequest } from '@/middleware/auth'
+import { WidgetType } from '@/types/widgets'
 import { v4 as uuidv4 } from 'uuid'
 
 const createWidgetSchema = z.object({
   dashboardId: z.string(),
-  type: z.enum(['STOCK', 'WEATHER', 'CUSTOM']),
+  type: z.enum(['STOCK', 'WEATHER', 'CUSTOM', 'LINE_CHART', 'GAUGE', 'INDICATOR', 'TEXT_DISPLAY', 'BAR_CHART']),
+  title: z.string().min(1, 'Widget title is required'),
   config: z.object({}).passthrough(),
+  deviceToken: z.string().optional(),
+  dataField: z.string().optional(),
+  refreshInterval: z.number().int().min(1).optional(),
   x: z.number().int().min(0),
   y: z.number().int().min(0),
   w: z.number().int().min(1),
@@ -64,7 +69,7 @@ export async function POST(request: NextRequest) {
   return withAuth(request, async (req: AuthenticatedRequest) => {
     try {
       const body = await request.json()
-      const { dashboardId, type, config, x, y, w, h } = createWidgetSchema.parse(body)
+      const { dashboardId, type, title, config, deviceToken, dataField, refreshInterval, x, y, w, h } = createWidgetSchema.parse(body)
 
       // Verify dashboard ownership
       const dashboard = await prisma.dashboard.findFirst({
@@ -98,8 +103,12 @@ export async function POST(request: NextRequest) {
         data: {
           id: uuidv4(),
           dashboardId,
-          widgetType: type,
+          widgetType: type as any,
+          title,
           config,
+          deviceToken,
+          dataField,
+          refreshInterval: refreshInterval || 300,
           positionX: x,
           positionY: y,
           width: w,

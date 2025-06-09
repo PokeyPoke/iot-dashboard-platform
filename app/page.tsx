@@ -15,7 +15,11 @@ import { Loader2 } from 'lucide-react'
 interface Widget {
   id: string
   widgetType: string
+  title: string
   config: any
+  deviceToken?: string
+  dataField?: string
+  refreshInterval?: number
   positionX: number
   positionY: number
   width: number
@@ -132,7 +136,11 @@ export default function Home() {
         body: JSON.stringify({
           dashboardId: currentDashboard.id,
           type,
+          title: config.title,
           config,
+          deviceToken: config.deviceToken,
+          dataField: config.dataField,
+          refreshInterval: config.refreshInterval,
           x: 0,
           y: 0,
           w: 4,
@@ -355,7 +363,11 @@ export default function Home() {
             widgets={currentDashboard.widgets.map(w => ({
               id: w.id,
               type: w.widgetType,
+              title: w.title,
               config: w.config,
+              deviceToken: w.deviceToken,
+              dataField: w.dataField,
+              refreshInterval: w.refreshInterval,
               x: w.positionX,
               y: w.positionY,
               w: w.width,

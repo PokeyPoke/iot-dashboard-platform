@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         )
       }
-      authLogger.error({ error: error.message }, 'Login error')
+      authLogger.error({ error: error instanceof Error ? error.message : 'Unknown error' }, 'Login error')
       return NextResponse.json(
         { error: 'Internal server error' },
         { status: 500 }

@@ -29,8 +29,8 @@ export async function GET() {
     console.error('Database test failed:', error)
     return NextResponse.json({
       status: 'error',
-      error: error.message,
-      details: error.toString()
+      error: error instanceof Error ? error.message : 'Unknown error',
+      details: error instanceof Error ? error.toString() : String(error)
     }, { status: 500 })
   }
 }

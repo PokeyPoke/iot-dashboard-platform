@@ -108,7 +108,7 @@ export class EnhancedMQTTClient {
       
     } catch (error) {
       mqttLogger.error({ 
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         topic,
         messagePreview: message.toString().substring(0, 100)
       }, 'Failed to process MQTT message')
@@ -141,7 +141,7 @@ export class EnhancedMQTTClient {
 
     } catch (error) {
       mqttLogger.error({ 
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         attempt,
         maxRetries,
         deviceToken: payload.deviceToken

@@ -4,6 +4,10 @@ import React, { useState, useCallback, useEffect } from 'react'
 import { Responsive, WidthProvider } from 'react-grid-layout'
 import { StockWidget } from './widgets/StockWidget'
 import { WeatherWidget } from './widgets/WeatherWidget'
+import { LineChartWidget } from './widgets/LineChartWidget'
+import { GaugeWidget } from './widgets/GaugeWidget'
+import { IndicatorWidget } from './widgets/IndicatorWidget'
+import { TextDisplayWidget } from './widgets/TextDisplayWidget'
 import { WidgetConfigModal } from './widgets/WidgetConfigModal'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
@@ -17,7 +21,11 @@ const ResponsiveGridLayout = WidthProvider(Responsive)
 interface Widget {
   id: string
   type: string
+  title: string
   config: any
+  deviceToken?: string
+  dataField?: string
+  refreshInterval?: number
   x: number
   y: number
   w: number
@@ -70,6 +78,27 @@ export function DashboardGrid({
               widget.config.units || 'metric'
             )
             break
+          case 'LINE_CHART':
+          case 'GAUGE':
+          case 'INDICATOR':
+          case 'TEXT_DISPLAY':
+          case 'BAR_CHART':
+            // Fetch IoT device data
+            if (widget.deviceToken) {
+              try {
+                const response = await fetch(`/api/iot/device-data?deviceToken=${widget.deviceToken}`)
+                if (response.ok) {
+                  data = await response.json()
+                } else {
+                  data = { error: 'Device not found or no data available' }
+                }
+              } catch (error) {
+                data = { error: 'Failed to fetch device data' }
+              }
+            } else {
+              data = { error: 'No device configured' }
+            }
+            break
           default:
             data = {}
         }
@@ -99,9 +128,10 @@ export function DashboardGrid({
     const intervals: NodeJS.Timeout[] = []
     
     widgets.forEach(widget => {
+      const refreshIntervalMs = (widget.refreshInterval || 300) * 1000 // Convert seconds to milliseconds
       const interval = setInterval(() => {
         handleRefresh(widget.id)
-      }, 300000) // Refresh every 5 minutes
+      }, refreshIntervalMs)
       intervals.push(interval)
     })
 
@@ -131,8 +161,16 @@ export function DashboardGrid({
         return <StockWidget {...commonProps} />
       case 'WEATHER':
         return <WeatherWidget {...commonProps} />
+      case 'LINE_CHART':
+        return <LineChartWidget {...commonProps} title={widget.title} dataField={widget.dataField} />
+      case 'GAUGE':
+        return <GaugeWidget {...commonProps} title={widget.title} dataField={widget.dataField} />
+      case 'INDICATOR':
+        return <IndicatorWidget {...commonProps} title={widget.title} dataField={widget.dataField} />
+      case 'TEXT_DISPLAY':
+        return <TextDisplayWidget {...commonProps} title={widget.title} dataField={widget.dataField} />
       default:
-        return <div>Unknown widget type</div>
+        return <div>Unknown widget type: {widget.type}</div>
     }
   }
 

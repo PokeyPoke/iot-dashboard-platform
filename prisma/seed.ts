@@ -44,6 +44,7 @@ async function main() {
       id: uuidv4(),
       dashboardId: dashboard.id,
       widgetType: 'STOCK' as const,
+      title: 'AAPL Stock Price',
       config: {
         symbol: 'AAPL',
         displayMode: 'price',
@@ -58,6 +59,7 @@ async function main() {
       id: uuidv4(),
       dashboardId: dashboard.id,
       widgetType: 'WEATHER' as const,
+      title: 'New York Weather',
       config: {
         location: 'New York',
         units: 'metric',
@@ -73,6 +75,7 @@ async function main() {
       id: uuidv4(),
       dashboardId: dashboard.id,
       widgetType: 'CRYPTO' as const,
+      title: 'Bitcoin Price',
       config: {
         coin: 'bitcoin',
         currency: 'USD',

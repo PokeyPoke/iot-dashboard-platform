@@ -23,6 +23,11 @@ enum WidgetType {
   SPORTS
   TRANSIT
   CUSTOM
+  LINE_CHART
+  GAUGE
+  INDICATOR
+  TEXT_DISPLAY
+  BAR_CHART
 }
 
 enum DeviceType {
@@ -91,7 +96,10 @@ model Widget {
   id              String     @id @default(uuid())
   dashboardId     String
   widgetType      WidgetType
+  title           String
   config          Json       @default("{}")
+  deviceToken     String?    // For IoT widgets - links to Device.apiToken
+  dataField       String?    // For IoT widgets - JSON path to data field
   positionX       Int        @default(0)
   positionY       Int        @default(0)
   width           Int        @default(4)
@@ -104,6 +112,7 @@ model Widget {
   dashboard Dashboard @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
 
   @@index([dashboardId])
+  @@index([deviceToken])
 }
 
 model Device {
