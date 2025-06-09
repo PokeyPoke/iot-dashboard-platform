@@ -15,8 +15,7 @@
       },
       "deploy": {
         "startCommand": "echo 'Starting application without migrations for initial deployment...' && npm start",
-        "healthcheckPath": "/api/health",
-        "healthcheckTimeout": 120
+        "healthcheckTimeout": 300
       }
     },
     "mqtt": {
