@@ -10,8 +10,8 @@ else
   echo "❌ No DATABASE_URL found!"
 fi
 
-# Check if we need to run migrations
-if [ "$RUN_MIGRATIONS" = "true" ]; then
+# Check if we need to run migrations (force run if RUN_MIGRATIONS is true OR if User table doesn't exist)
+if [ "$RUN_MIGRATIONS" = "true" ] || [ "$FORCE_MIGRATIONS" = "true" ]; then
   echo "🔄 Running database migrations..."
   npx prisma migrate deploy
   
