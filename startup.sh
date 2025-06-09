@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "🚀 Starting IoT Dashboard Platform v3..."
+echo "🚀 Starting IoT Dashboard Platform v4..."
 
 # Always check database connection
 echo "🗄️  Checking database connection..."
@@ -11,16 +11,16 @@ else
   exit 1
 fi
 
-# Since environment variables aren't working in Railway, let's force run migrations on first deploy
-echo "🔄 Running database migrations (forced for initial deployment)..."
-npx prisma migrate deploy
+# Use the locally installed Prisma binary directly
+echo "🔄 Running database migrations..."
+./node_modules/.bin/prisma migrate deploy
 
 if [ $? -eq 0 ]; then
   echo "✅ Migrations completed successfully"
   
   # Run seed after successful migration
   echo "🌱 Seeding database with initial data..."
-  npx prisma db seed
+  ./node_modules/.bin/prisma db seed
   
   if [ $? -eq 0 ]; then
     echo "✅ Database seeded successfully"
