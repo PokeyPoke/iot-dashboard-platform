@@ -1,8 +1,13 @@
-FROM node:18-alpine AS base
+FROM node:18-slim AS base
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    openssl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apk add --no-cache libc6-compat openssl1.1-compat-dev openssl-dev
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
@@ -11,7 +16,6 @@ RUN npm ci
 
 # Rebuild the source code only when needed
 FROM base AS builder
-RUN apk add --no-cache libc6-compat openssl1.1-compat-dev openssl-dev
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -28,7 +32,6 @@ RUN npm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner
-RUN apk add --no-cache libc6-compat openssl1.1-compat-dev openssl-dev
 WORKDIR /app
 
 ENV NODE_ENV production
