@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { comparePassword, generateAccessToken, generateRefreshToken } from '@/lib/auth'
 import { setAuthCookiesInResponse } from '@/lib/cookies'
 import { authRateLimit } from '@/middleware/rateLimit'
+import { authLogger, logSecurityEvent } from '@/lib/logger'
 import { v4 as uuidv4 } from 'uuid'
 
 const loginSchema = z.object({
@@ -15,32 +16,41 @@ export async function POST(request: NextRequest) {
   // Apply rate limiting
   return authRateLimit(request, async () => {
     try {
-      console.log('Login attempt started')
+      authLogger.info('Login attempt started')
       const body = await request.json()
-      console.log('Request body parsed:', { email: body.email, hasPassword: !!body.password })
       const { email, password } = loginSchema.parse(body)
-      console.log('Schema validation passed')
+      
+      authLogger.debug({ email, hasPassword: !!password }, 'Login request validated')
 
     // Find user
     const user = await prisma.user.findUnique({
       where: { email }
     })
 
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Invalid credentials' },
-        { status: 401 }
-      )
-    }
+      if (!user) {
+        logSecurityEvent('login_failed_user_not_found', {
+          email,
+          ip: request.headers.get('x-forwarded-for') || 'unknown'
+        })
+        return NextResponse.json(
+          { error: 'Invalid credentials' },
+          { status: 401 }
+        )
+      }
 
-    // Verify password
-    const isValid = await comparePassword(password, user.passwordHash)
-    if (!isValid) {
-      return NextResponse.json(
-        { error: 'Invalid credentials' },
-        { status: 401 }
-      )
-    }
+      // Verify password
+      const isValid = await comparePassword(password, user.passwordHash)
+      if (!isValid) {
+        logSecurityEvent('login_failed_invalid_password', {
+          userId: user.id,
+          email,
+          ip: request.headers.get('x-forwarded-for') || 'unknown'
+        })
+        return NextResponse.json(
+          { error: 'Invalid credentials' },
+          { status: 401 }
+        )
+      }
 
     // Update last login
     await prisma.user.update({
@@ -81,15 +91,17 @@ export async function POST(request: NextRequest) {
         refreshToken,
       })
 
+      authLogger.info({ userId: user.id, email }, 'Login successful')
       return setAuthCookiesInResponse(response, accessToken, refreshToken)
     } catch (error) {
       if (error instanceof z.ZodError) {
+        authLogger.warn({ errors: error.errors }, 'Login validation failed')
         return NextResponse.json(
           { error: error.errors },
           { status: 400 }
         )
       }
-      console.error('Login error:', error)
+      authLogger.error({ error: error.message }, 'Login error')
       return NextResponse.json(
         { error: 'Internal server error' },
         { status: 500 }
