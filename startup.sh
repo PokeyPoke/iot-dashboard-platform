@@ -11,24 +11,14 @@ else
   exit 1
 fi
 
-# Use the locally installed Prisma binary directly
-echo "🔄 Running database migrations..."
-./node_modules/.bin/prisma migrate deploy
+# Run migrations using the migration script
+echo "🔄 Running database migrations and seeding..."
+node migrate-once.js
 
 if [ $? -eq 0 ]; then
-  echo "✅ Migrations completed successfully"
-  
-  # Run seed after successful migration
-  echo "🌱 Seeding database with initial data..."
-  ./node_modules/.bin/prisma db seed
-  
-  if [ $? -eq 0 ]; then
-    echo "✅ Database seeded successfully"
-  else
-    echo "❌ Seeding failed - continuing anyway..."
-  fi
+  echo "✅ Database setup completed successfully"
 else
-  echo "❌ Migration failed - continuing anyway (tables might already exist)..."
+  echo "❌ Database setup failed - continuing anyway..."
 fi
 
 # Start the application
