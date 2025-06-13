@@ -11,9 +11,9 @@ else
   exit 1
 fi
 
-# Run migrations using the migration script
+# Run migrations using the programmatic migration script
 echo "🔄 Running database migrations and seeding..."
-node migrate-once.js
+node migrate-programmatic.js
 
 if [ $? -eq 0 ]; then
   echo "✅ Database setup completed successfully"
