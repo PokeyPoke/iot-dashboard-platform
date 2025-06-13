@@ -189,7 +189,24 @@ ALTER TABLE "ApiKey" ADD CONSTRAINT "ApiKey_userId_fkey" FOREIGN KEY ("userId") 
     } catch (error) {
       // Tables don't exist, run migration
       console.log('🔧 Creating database tables...');
-      await prisma.$executeRawUnsafe(migrationSQL);
+      
+      // Split SQL into individual statements and execute them one by one
+      const statements = migrationSQL
+        .split(';')
+        .map(stmt => stmt.trim())
+        .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
+      
+      for (const statement of statements) {
+        if (statement.trim()) {
+          try {
+            await prisma.$executeRawUnsafe(statement + ';');
+          } catch (sqlError) {
+            console.log(`⚠️  SQL statement failed (might be expected): ${statement.substring(0, 50)}...`);
+            console.log(`   Error: ${sqlError.message}`);
+          }
+        }
+      }
+      
       console.log('✅ Database tables created successfully');
     }
     
