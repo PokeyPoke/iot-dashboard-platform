@@ -13,8 +13,10 @@ export async function GET(request: Request) {
       status: 'success',
       symbol,
       data,
-      usingApi: !!process.env.ALPHA_VANTAGE_API_KEY,
-      apiKeyPresent: !!process.env.ALPHA_VANTAGE_API_KEY,
+      usingAlphaVantage: !!process.env.ALPHA_VANTAGE_API_KEY,
+      alphaVantageKeyPresent: !!process.env.ALPHA_VANTAGE_API_KEY,
+      usingYahooFinance: !process.env.ALPHA_VANTAGE_API_KEY, // Falls back to Yahoo
+      dataSource: process.env.ALPHA_VANTAGE_API_KEY ? 'Alpha Vantage' : 'Yahoo Finance',
       timestamp: new Date().toISOString()
     })
   } catch (error) {
