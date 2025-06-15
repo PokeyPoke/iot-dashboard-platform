@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "🚀 Starting IoT Dashboard Platform v4..."
+echo "🚀 Starting IoT Dashboard Platform v5..."
 
 # Always check database connection
 echo "🗄️  Checking database connection..."
