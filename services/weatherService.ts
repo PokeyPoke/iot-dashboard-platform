@@ -43,7 +43,7 @@ export class WeatherService {
 
     try {
       // Try OpenWeatherMap API first
-      const openWeatherKey = process.env.NEXT_PUBLIC_OPENWEATHER_KEY
+      const openWeatherKey = process.env.OPENWEATHER_API_KEY
       if (openWeatherKey) {
         const data = await this.fetchFromOpenWeatherMap(location, units, openWeatherKey)
         this.cache.set(cacheKey, { data, timestamp: Date.now() })

@@ -32,7 +32,7 @@ export class StockService {
 
     try {
       // Try Alpha Vantage first
-      const alphaVantageKey = process.env.NEXT_PUBLIC_ALPHA_VANTAGE_KEY
+      const alphaVantageKey = process.env.ALPHA_VANTAGE_API_KEY
       if (alphaVantageKey) {
         const data = await this.fetchFromAlphaVantage(symbol, alphaVantageKey)
         this.cache.set(cacheKey, { data, timestamp: Date.now() })
