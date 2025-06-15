@@ -57,7 +57,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modul
 
 # Copy startup script and migration script
 COPY --chown=nextjs:nodejs startup.sh ./startup.sh
-COPY --chown=nextjs:nodejs migrate-programmatic.js ./migrate-programmatic.js
+COPY --chown=nextjs:nodejs migrate-simple.js ./migrate-simple.js
 RUN chmod +x ./startup.sh
 
 USER nextjs
