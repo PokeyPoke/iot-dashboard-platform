@@ -15,8 +15,9 @@ export async function GET(request: Request) {
       location,
       units,
       data,
-      usingApi: !!process.env.OPENWEATHER_API_KEY,
-      apiKeyPresent: !!process.env.OPENWEATHER_API_KEY,
+      usingApi: !!(process.env.OPENWEATHERMAP_API_KEY || process.env.OPENWEATHER_API_KEY),
+      apiKeyPresent: !!(process.env.OPENWEATHERMAP_API_KEY || process.env.OPENWEATHER_API_KEY),
+      keySource: process.env.OPENWEATHERMAP_API_KEY ? 'OPENWEATHERMAP_API_KEY' : process.env.OPENWEATHER_API_KEY ? 'OPENWEATHER_API_KEY' : 'None',
       timestamp: new Date().toISOString()
     })
   } catch (error) {

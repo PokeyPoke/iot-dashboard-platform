@@ -93,9 +93,13 @@ export class CryptoService {
   }
 
   private async fetchFromCoinGecko(symbol: string): Promise<CryptoData> {
-    // CoinGecko free API - supports all major cryptocurrencies including Solana
+    // CoinGecko API - supports all major cryptocurrencies including Solana
+    const coingeckoKey = process.env.COINGECKO_API_KEY
+    const headers = coingeckoKey ? { 'x-cg-pro-api-key': coingeckoKey } : {}
+    
     const response = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${this.symbolToId(symbol)}&vs_currencies=usd&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true`
+      `https://api.coingecko.com/api/v3/simple/price?ids=${this.symbolToId(symbol)}&vs_currencies=usd&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true`,
+      { headers }
     )
     
     if (!response.ok) {

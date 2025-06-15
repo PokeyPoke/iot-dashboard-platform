@@ -5,8 +5,8 @@ const API_ENDPOINTS = {
   stock: process.env.ALPHA_VANTAGE_API_KEY 
     ? `https://www.alphavantage.co/query?apikey=${process.env.ALPHA_VANTAGE_API_KEY}`
     : null,
-  weather: process.env.OPENWEATHER_API_KEY
-    ? `https://api.openweathermap.org/data/2.5/weather?appid=${process.env.OPENWEATHER_API_KEY}`
+  weather: (process.env.OPENWEATHERMAP_API_KEY || process.env.OPENWEATHER_API_KEY)
+    ? `https://api.openweathermap.org/data/2.5/weather?appid=${process.env.OPENWEATHERMAP_API_KEY || process.env.OPENWEATHER_API_KEY}`
     : null,
   crypto: process.env.COINAPI_KEY
     ? `https://rest.coinapi.io/v1/exchangerate`
